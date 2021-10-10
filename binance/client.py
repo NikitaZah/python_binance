@@ -84,6 +84,7 @@ class BaseClient:
     FUTURE_ORDER_TYPE_TAKE_PROFIT = 'TAKE_PROFIT'
     FUTURE_ORDER_TYPE_TAKE_PROFIT_MARKET = 'TAKE_PROFIT_MARKET'
     FUTURE_ORDER_TYPE_LIMIT_MAKER = 'LIMIT_MAKER'
+    FUTURE_ORDER_TYPE_TRAILING_STOP_MARKET = 'TRAILING_STOP_MARKET'
 
     TIME_IN_FORCE_GTC = 'GTC'  # Good till cancelled
     TIME_IN_FORCE_IOC = 'IOC'  # Immediate or cancel
@@ -185,11 +186,12 @@ class BaseClient:
     def _create_website_uri(self, path: str) -> str:
         return self.WEBSITE_URL + '/' + path
 
-    def _create_futures_api_uri(self, path: str) -> str:
+    def _create_futures_api_uri(self, path: str, version=1) -> str:
         url = self.FUTURES_URL
         if self.testnet:
             url = self.FUTURES_TESTNET_URL
-        return url + '/' + self.FUTURES_API_VERSION + '/' + path
+        options = {1: self.FUTURES_API_VERSION, 2: self.FUTURES_API_VERSION2}
+        return url + '/' + options[version] + '/' + path
 
     def _create_futures_data_api_uri(self, path: str) -> str:
         url = self.FUTURES_DATA_URL
@@ -333,8 +335,8 @@ class Client(BaseClient):
         uri = self._create_api_uri(path, signed, version)
         return self._request(method, uri, signed, **kwargs)
 
-    def _request_futures_api(self, method, path, signed=False, **kwargs) -> Dict:
-        uri = self._create_futures_api_uri(path)
+    def _request_futures_api(self, method, path, signed=False, version=1, **kwargs) -> Dict:
+        uri = self._create_futures_api_uri(path, version=version)
 
         return self._request(method, uri, signed, True, **kwargs)
 
@@ -5922,6 +5924,14 @@ class Client(BaseClient):
 
         """
         return self._request_futures_api('get', 'balance', True, data=params)
+
+    def futures_account_information(self, **params):
+        """Get current account information
+
+        https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-v2-user_data
+
+        """
+        return self._request_futures_api('get', 'account', True, version=2, data=params)
 
     def futures_account(self, **params):
         """Get current account information.
