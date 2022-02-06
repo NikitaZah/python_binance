@@ -1421,6 +1421,13 @@ class ThreadedWebsocketManager(ThreadedApiManager):
             params={}
         )
 
+    def start_futures_user_socket(self, callback: Callable) -> str:
+        return self._start_async_socket(
+            callback=callback,
+            socket_name='futures_user_socket',
+            params={}
+        )
+
     def start_margin_socket(self, callback: Callable) -> str:
         return self._start_async_socket(
             callback=callback,
